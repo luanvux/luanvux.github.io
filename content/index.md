@@ -14,3 +14,7 @@ Topics I am exploring and documenting include:
 - **Ethernet**: protocols, MAC/PHY design, packet processing, and high-speed interfaces
 
 The goal is to turn lessons learned from study and hands-on work into clear, reusable references.
+
+## Posts
+
+- [[posts/zc706-10g-one-board|10G Ethernet on ZC706: One Board, One PC, Zero Second Board]]
