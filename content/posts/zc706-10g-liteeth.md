@@ -1,5 +1,5 @@
 ---
-title: "Replacing the Xilinx Eval MAC with Open-Source LiteEth"
+title: "Cutting the Licence Cord: Open-Source 10G Ethernet on the ZC706 with LiteEth"
 date: 2026-06-03
 tags:
   - fpga
