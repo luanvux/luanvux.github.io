@@ -40,20 +40,7 @@ That interface is **XGMII**.
 
 10 Gigabit Ethernet has a clean architectural seam defined by IEEE 802.3, and it sits exactly where we need it:
 
-```
-┌──────────────────────────────┐
-│            MAC               │  preamble, SFD, FCS, padding
-├──────────────────────────────┤
-│  Reconciliation Sublayer     │  XGMII control encoding,
-│  (RS)                        │  START / END / IDLE chars,
-│                              │  inter-frame gap, deficit idle count
-├══════════════════════════════┤  ◄── XGMII bus (8b ctl + 64b data @ 156.25 MHz)
-│            PCS               │  64b/66b encode, scrambler, gearbox
-│            PMA               │  SERDES, CDR, equalisation
-├──────────────────────────────┤
-│            PMD               │  SFP+ optics / DAC
-└──────────────────────────────┘
-```
+![XGMII layer boundary — LiteEth owns MAC + RS, PG068 owns PCS + PMA](images/diagram-xgmii-layers.svg)
 
 The rule that makes this tractable is vendor-neutral:
 
@@ -95,34 +82,7 @@ Worth knowing if you ever go down that road — but since the MAC is still eval-
 
 The full design is a LiteX SoC. A **VexRISCV** soft-core runs the LiteX BIOS; LiteEth sits beside it as a peripheral. Crucially, the CPU is **not** in the packet datapath — it only configures and monitors the Ethernet logic over the CSR/Wishbone bus. The datapath itself runs entirely in PG068's clock domain.
 
-```
-            ┌──────────────────────── ZC706 PL (LiteX SoC) ────────────────────────┐
-            │                                                                       │
-            │   sys domain (125 MHz)              clkmgt domain (156.25 MHz)        │
-            │   ┌───────────────────┐             ┌───────────────────────────────┐ │
-            │   │  VexRISCV CPU     │             │  LiteEthUDPIPCore             │ │
-            │   │  + LiteX BIOS     │             │   (UDP / IP / ARP / ICMP)     │ │
-            │   │  UART (crossover) │             │        │                      │ │
-            │   │  I²C  (Si5324)    │             │  LiteEthMACCore  (MAC)        │ │
-            │   └─────────┬─────────┘             │        │                      │ │
-            │             │ CSR / Wishbone        │  LiteEthPHYXGMII (RS)         │ │
-            │             │ (config + status      │        │                      │ │
-            │             │  only — not datapath) └────────┼──────────────────────┘ │
-            │             └───── CDC (MultiReg) ───────────┘   XGMII (8b+64b)        │
-            │                                                  │                     │
-            │                                          ┌───────▼────────┐            │
-            │                                          │  PG068 PCS/PMA │            │
-            │                                          │  (BASER, free) │            │
-            │                                          └───────┬────────┘            │
-            └──────────────────────────────────────────────────┼────────────────────┘
-                                                                │ P2 SFP+ / AOC
-                                                                ▼
-                                                          PC SFP+ NIC
-
-  Datapath:  SFP+ ◄──► PG068 ◄── XGMII ──► LiteEth (RS → MAC → UDP/IP)   — all in clkmgt
-  Control:   VexRISCV ── CSR/Wishbone ──► xgmii status + i²c (Si5324)     — CPU only configures
-  Refclk:    Si5324 ── 156.25 MHz ──► PG068 ── coreclk_out ──► clocks the entire clkmgt domain
-```
+![SoC architecture — VexRISCV and LiteEth as parallel modules, PG068 below, two independent clock domains](images/diagram-soc-architecture.svg)
 
 Two independent clock domains. PG068 *generates* `coreclk_out` (156.25 MHz), which clocks the entire LiteEth stack. The 125 MHz CPU domain touches it only through synchronised CSR reads/writes — the CPU clock never drives a single byte of Ethernet traffic.
 
@@ -211,17 +171,7 @@ The ZC706's USB-JTAG (the Digilent SMT2, driven by OpenOCD) is the *only* host c
 | **UART console** | `uart_name="crossover"` | `litex_term crossover` | The interactive BIOS prompt — type `i2c_write`, `xgmii_core_status`, etc. |
 | **Debug bridge (JTAGBone)** | `--with-jtagbone` | `litex_server --jtag` + `RemoteClient` | Direct read/write of any CSR / Wishbone address **from the PC**, with no CPU code running |
 
-```
-   PC (host)                              ZC706
- ┌──────────────────┐    USB-JTAG    ┌────────────────────────────────────┐
- │ litex_term  ─────┼──┐  (SMT2)     │  JTAG TAP                          │
- │  (crossover)     │  │             │    ├─ crossover UART ─► BIOS        │
- │                  │  ├── OpenOCD ──┼──► │              (VexRISCV)        │
- │ litex_server     │  │             │    └─ JTAGBone ─► Wishbone / CSR    │
- │  + RemoteClient ─┼──┘             │             bus  ├─► i²c (Si5324)   │
- │  (clock_init.py) │                │                  └─► xgmii status   │
- └──────────────────┘                └────────────────────────────────────┘
-```
+![JTAG dual role — single USB-JTAG cable carries both the BIOS console and the JTAGBone debug bridge](images/diagram-jtag-bridge.svg)
 
 The payoff is **JTAGBone**: it lets a Python script on the PC configure the Si5324 over I²C by writing the LiteX I²C peripheral's registers across the Wishbone bus — the VexRISCV CPU executes nothing for this. The manual BIOS path and the scripted path are two front-ends to the *same* I²C peripheral, over the *same* cable:
 
