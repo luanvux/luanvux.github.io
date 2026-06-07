@@ -1,5 +1,5 @@
 ---
-title: "Cutting the Licence Cord: Open-Source 10G Ethernet on the ZC706 with LiteEth"
+title: "Open MAC, Xilinx PHY: 10G Ethernet on ZC706 with LiteEth"
 date: 2026-06-03
 tags:
   - fpga
