@@ -255,6 +255,8 @@ The board carries two heartbeat LEDs that make the clock state visible at a glan
 
 ![SFP+ port on the server side connected to the ZC706](images/sfp_port.jpg)
 
+![10G link up — LED2 lit after Si5324 lock and PG068 coreclk_out active](images/link_up.png)
+
 ---
 
 ## Verification
