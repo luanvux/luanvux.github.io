@@ -290,4 +290,8 @@ This confirms the full open-source datapath — VexRISCV → LiteEthUDPIPCore �
 
 ## What's next
 
-The link is up and answering ping; the natural follow-up is throughput. A future article will push UDP traffic through the LiteEth crossbar (the design already reserves port 3000) and measure what the open-source datapath sustains against the 10G line rate — plus where the design should live: PG068's `.xci` either vendored into the LiteEth PHY collection or carried in litex-boards.
+Two threads to follow from here:
+
+**10G link performance.** The link is up and carrying frames, but we haven't measured what it actually sustains. A follow-up article will drive UDP traffic through the LiteEth crossbar (port 3000 is already wired), capture throughput and latency against the 10G line rate, and identify where the open-source datapath leaves headroom on the table.
+
+**Deep-dive on the Reconciliation Sublayer.** `LiteEthPHYXGMII` is doing a lot of quiet work — inter-frame gap enforcement, deficit idle count, START/END/IDLE character insertion, lane-0/lane-4 shifted start handling. A dedicated article will walk through the RS spec (IEEE 802.3 Clause 46) and map each requirement to the corresponding Migen logic, making it easier to audit, port, or extend for other 10G PHYs.
