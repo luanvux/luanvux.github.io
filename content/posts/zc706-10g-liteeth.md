@@ -16,6 +16,8 @@ description: "Swapping the eval-licensed Xilinx 10G MAC for BSD-licensed LiteEth
 
 This article replaces that MAC with **LiteEth** — the BSD-licensed Ethernet stack from the LiteX project — while keeping Xilinx's **PG068 10G Ethernet PCS/PMA** for the serial side. The board, the SFP+ cage, and the Si5324 reference clock are all identical to the previous build. What changes is everything *above* the serial PHY: the MAC, the reconciliation logic, and the CPU that brings the link up are now open-source soft-logic running in the PL.
 
+![ZC706 board with SFP+ cage populated](images/zc706.jpg)
+
 > **Source:** [`10g_zc706.py`](https://github.com/tieovi/zc706_10g_example) and `clock_init.py` — a LiteX SoC target plus a host-side clock bring-up script.
 
 ---
@@ -54,27 +56,6 @@ LiteEth provides both:
 - **`LiteEthMACCore`** (`liteeth/mac/core.py`) is the MAC: preamble, FCS, padding.
 
 So the swap is conceptually small: unplug the eval MAC from the XGMII bus, plug LiteEth's RS + MAC into it instead. PG068 doesn't know the difference.
-
----
-
-## A note on the PG068 + PG072 split (and why we skip it)
-
-A tempting half-step is to keep Xilinx's MAC but instantiate PG072 and PG068 as *separate* cores instead of the bundled PG157. It doesn't help — PG072 is still eval-licensed, so you end up exactly where you started, with one extra trap on the way.
-
-When you wire PG072's XGMII straight into PG068's inside the fabric, implementation fails with:
-
-```
-[DRC REQP-1884] ODDR_has_invalid_load: ODDR cell .../txc_loop[0].txc_ddr
-loads should only be an output buffer or a port, but it is driving an invalid load
-```
-
-PG072 in its default `External` mode drives XGMII through **ODDR** primitives — DDR I/O registers meant for a board-level connection to a *discrete* PHY chip. Driving fabric flip-flops with them violates the DRC. The fix is to set `Physical_Interface = Internal` in the MAC's customisation so it uses plain fabric registers:
-
-```tcl
-set_property -dict [list CONFIG.Physical_Interface {Internal}] [get_ips ten_gig_eth_mac_0]
-```
-
-Worth knowing if you ever go down that road — but since the MAC is still eval-licensed either way, LiteEth makes the whole question moot. PG068 is the only Xilinx IP we keep.
 
 ---
 
@@ -205,13 +186,29 @@ SI5324_REGS = {
 ### Option A — type it in the BIOS
 
 ```
-litex> i2c_write 0x74 0x10 1 0x10      # bus switch → Si5324
-litex> i2c_write 0x68 0x00 1 0x54
-litex> i2c_write 0x68 0x01 1 0xE4
-        ... 18 more ...
-litex> i2c_write 0x68 0x88 1 0x40
-litex> xgmii_core_status
-xgmii_core_status = 0x00000001          # bit 0 = pcs_block_lock = 1  ✓
+i2c_write 0x74 0x10 1 0x10
+i2c_write 0x68 0x00 1 0x54
+i2c_write 0x68 0x01 1 0xE4
+i2c_write 0x68 0x02 1 0x12
+i2c_write 0x68 0x03 1 0x15
+i2c_write 0x68 0x04 1 0x92
+i2c_write 0x68 0x0A 1 0x08
+i2c_write 0x68 0x0B 1 0x40
+i2c_write 0x68 0x19 1 0xA0
+i2c_write 0x68 0x1F 1 0x00
+i2c_write 0x68 0x20 1 0x00
+i2c_write 0x68 0x21 1 0x03
+i2c_write 0x68 0x28 1 0xC2
+i2c_write 0x68 0x29 1 0x49
+i2c_write 0x68 0x2A 1 0xEF
+i2c_write 0x68 0x2B 1 0x00
+i2c_write 0x68 0x2C 1 0x77
+i2c_write 0x68 0x2D 1 0x0B
+i2c_write 0x68 0x2E 1 0x00
+i2c_write 0x68 0x2F 1 0x77
+i2c_write 0x68 0x30 1 0x0B
+i2c_write 0x68 0x88 1 0x40
+xgmii_core_status
 ```
 
 ### Option B — script it over JTAGBone
@@ -256,6 +253,8 @@ The board carries two heartbeat LEDs that make the clock state visible at a glan
 - **LED0** blinks from the 125 MHz `sys` counter — the SoC is alive.
 - **LED2** blinks from the 156.25 MHz `clkmgt` counter — **it only lights once the Si5324 is locked and PG068 is producing `coreclk_out`.** A dark LED2 means the clock bring-up hasn't taken.
 
+![SFP+ port on the server side connected to the ZC706](images/sfp_port.jpg)
+
 ---
 
 ## Verification
@@ -265,7 +264,7 @@ The board carries two heartbeat LEDs that make the clock state visible at a glan
 `xgmii_core_status` bit 0 is PG068's PCS block-lock flag — the link-up gate. After the Si5324 sequence it reads back `1`:
 
 ```
-litex> xgmii_core_status
+xgmii_core_status
 xgmii_core_status = 0x00000001
 ```
 
@@ -275,33 +274,17 @@ If it stays `0`: confirm all 21 register writes landed (a missed bus-switch sele
 
 With block lock up, the LiteEth stack is live. `LiteEthUDPIPCore` instantiates ARP and ICMP alongside UDP/IP, so the board answers ARP and replies to ping with no extra logic on our side — proof that the full open-source RS + MAC + IP path is carrying real frames end to end:
 
-```bash
-# representative output — sub-millisecond replies on a direct SFP+ link
-$ ping 10.1.0.3
-64 bytes from 10.1.0.3: icmp_seq=1 ttl=64 time=0.18 ms
-64 bytes from 10.1.0.3: icmp_seq=2 ttl=64 time=0.14 ms
-64 bytes from 10.1.0.3: icmp_seq=3 ttl=64 time=0.14 ms
-```
-
-> The figures above are illustrative; a captured trace will replace them in an update.
+![ICMP ping replies from the LiteEth stack on ZC706](images/icmp_ping.png)
 
 That round trip exercises everything we replaced: PG068 hands received bytes up the XGMII bus, LiteEth's RS strips the control characters and recovers the frame, the MAC checks it, the IP/ICMP core forms the echo reply, and the whole thing runs back out through the RS and PG068 to the wire — without a line of MAC RTL or firmware from Xilinx in the path.
 
----
+### UDP data path
 
-## Things that surprised me
+With ICMP working, the next step is pushing a real UDP payload. The design exposes port 3000 via the LiteEth crossbar; a short transmit loop on the ZC706 sends frames that arrive at the server's SFP+ NIC:
 
-**1. The PCS/PMA was never the licensing problem.**
+![UDP data payload transmitted from ZC706 received on the server over the 10G link](images/udp_tx_from_zc706.png)
 
-It is easy to assume "10G Ethernet IP = licensed," but PG068 BASER is free. The entire eval-licence question reduces to the MAC, and the MAC is exactly the layer an open-source stack is happy to provide.
-
-**2. The CPU does no work to bring up a 10G link.**
-
-JTAGBone writes the Si5324 registers straight across the Wishbone bus from the PC. The VexRISCV core is there for the BIOS convenience, but the link will come up with the CPU sitting idle — the bring-up is pure register I/O.
-
-**3. One JTAG cable really does carry both the console and a memory bus.**
-
-No FTDI UART, no second cable. `litex_term` (console) and `litex_server`/`RemoteClient` (CSR access) ride the same SMT2 JTAG simultaneously. Once that clicks, the whole "type it or script it" symmetry of the Si5324 bring-up makes sense.
+This confirms the full open-source datapath — VexRISCV → LiteEthUDPIPCore → LiteEthPHYXGMII → PG068 → wire — is carrying application-level data end to end.
 
 ---
 
