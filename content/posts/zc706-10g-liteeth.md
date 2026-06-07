@@ -248,11 +248,6 @@ python3 clock_init.py
 litex_term crossover
 ```
 
-The board carries two heartbeat LEDs that make the clock state visible at a glance:
-
-- **LED0** blinks from the 125 MHz `sys` counter — the SoC is alive.
-- **LED2** blinks from the 156.25 MHz `clkmgt` counter — **it only lights once the Si5324 is locked and PG068 is producing `coreclk_out`.** A dark LED2 means the clock bring-up hasn't taken.
-
 ![SFP+ port on the server side connected to the ZC706](images/sfp_port.jpg)
 
 ![10G link up — LED2 lit after Si5324 lock and PG068 coreclk_out active](images/link_up.png)
