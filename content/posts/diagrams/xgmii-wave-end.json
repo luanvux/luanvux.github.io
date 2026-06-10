@@ -1,0 +1,27 @@
+{
+  "signal": [
+    {"name": "eth_tx clk",        "wave": "p....."},
+    {"name": "fsm",               "wave": "=.=3..", "data": ["TRANSMIT", "IDLE", "TRANSMIT (shifted)"]},
+    {},
+    {"name": "sink.valid",        "wave": "1....."},
+    {"name": "sink.ready",        "wave": "10.1.."},
+    {"name": "sink.data",         "wave": "=.4==x", "data": ["D_last", "55..D5", "D0", "D1"]},
+    {"name": "sink.last",         "wave": "10...."},
+    {"name": "sink.last_be",      "wave": "==....", "data": ["80", "00"]},
+    {},
+    {"name": "end_transmission",  "wave": "010..."},
+    {"name": "current_ifg",       "wave": "=.=0..", "data": ["0", "2"]},
+    {},
+    {"name": "pads.tx_ctl",       "wave": "===0..", "data": ["00", "FF", "1F"]},
+    {"name": "pads.tx_data",      "wave": "==4==x", "data": ["D_last (8 valid bytes)", "FD 07x7", "07x4 FB 55x3", "55x3 D5|D0[31:0]", "D0h|D1[31:0]"]}
+  ],
+  "edge": [],
+  "head": {
+    "text": "Frame length % 8 == 0: dedicated END word (end_transmission), still zero waste",
+    "tick": 0
+  },
+  "foot": {
+    "text": "last_be=0x80 leaves no room for END -> extra bus word {FD, 07x7} counts 8 bytes toward IFG; shifted start adds 4 -> exactly 12."
+  },
+  "config": {"hscale": 2}
+}

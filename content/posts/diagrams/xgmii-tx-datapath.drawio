@@ -1,0 +1,94 @@
+<mxfile host="app.diagrams.net">
+  <diagram name="xgmii-tx-datapath" id="xgmii-tx-datapath">
+    <mxGraphModel dx="1100" dy="650" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1100" pageHeight="640" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <mxCell id="sink" value="sink&#10;(from MAC)&#10;&#10;data[63:0]&#10;last&#10;last_be[7:0]&#10;valid / ready" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="40" y="200" width="110" height="160" as="geometry" />
+        </mxCell>
+
+        <mxCell id="mask" value="masked_last_be&#10;= last ? last_be : 0" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#284b63;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="210" y="330" width="140" height="50" as="geometry" />
+        </mxCell>
+
+        <mxCell id="prevreg" value="prev_valid_data[63:0]&#10;prev_valid_last_be[7:0]&#10;prev_valid&#10;&#10;(1-word delay regs,&#10;loaded on valid &amp; ready)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#284b63;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="210" y="170" width="170" height="110" as="geometry" />
+        </mxCell>
+
+        <mxCell id="mux" value="adjusted_sink_* mux&#10;&#10;shifted: {sink[31:0],&#10;prev[63:32]}&#10;unshifted: sink word&#10;&#10;sel = transmit_shifted" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#284b63;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="440" y="200" width="170" height="130" as="geometry" />
+        </mxCell>
+
+        <mxCell id="enc" value="per-byte output encoder&#10;(8 lanes)&#10;&#10;lane &lt; last_be : data&#10;lane = END pos : 0xFD&#10;after END : 0x07 (IDLE)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#284b63;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="680" y="200" width="180" height="130" as="geometry" />
+        </mxCell>
+
+        <mxCell id="fsm" value="TX FSM&#10;IDLE / TRANSMIT&#10;&#10;start lane select (0/4),&#10;START + preamble injection,&#10;end_transmission word" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#284b63;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="440" y="40" width="240" height="100" as="geometry" />
+        </mxCell>
+
+        <mxCell id="ifg" value="IFG range state (2b)&#10;0:&lt;4B 1:&lt;8B 2:&lt;12B 3:&#8805;12B&#10;ifg_reset / +4B / +8B" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#284b63;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="420" y="430" width="190" height="80" as="geometry" />
+        </mxCell>
+
+        <mxCell id="dic" value="DIC state&#10;current_dic (2b, 0..3)&#10;last_packet_rem (len % 4)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#284b63;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="660" y="430" width="190" height="80" as="geometry" />
+        </mxCell>
+
+        <mxCell id="pads" value="pads&#10;&#10;tx_data[63:0]&#10;tx_ctl[7:0]" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="940" y="220" width="110" height="90" as="geometry" />
+        </mxCell>
+
+        <mxCell id="e1" value="data" style="edgeStyle=orthogonalEdgeStyle;html=1;fontSize=10;strokeColor=#284b63;" edge="1" parent="1" source="sink" target="prevreg">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e2" value="last, last_be" style="edgeStyle=orthogonalEdgeStyle;html=1;fontSize=10;strokeColor=#284b63;" edge="1" parent="1" source="sink" target="mask">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e3" value="prev half" style="edgeStyle=orthogonalEdgeStyle;html=1;fontSize=10;strokeColor=#284b63;" edge="1" parent="1" source="prevreg" target="mux">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e4" value="current word" style="edgeStyle=orthogonalEdgeStyle;html=1;fontSize=10;strokeColor=#284b63;exitX=1;exitY=0.25;exitDx=0;exitDy=0;" edge="1" parent="1" source="sink" target="mux">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="410" y="240" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e5" value="masked_last_be" style="edgeStyle=orthogonalEdgeStyle;html=1;fontSize=10;strokeColor=#284b63;" edge="1" parent="1" source="mask" target="mux">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e6" value="adjusted data,&#10;valid, last_be" style="edgeStyle=orthogonalEdgeStyle;html=1;fontSize=10;strokeColor=#284b63;" edge="1" parent="1" source="mux" target="enc">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e7" style="edgeStyle=orthogonalEdgeStyle;html=1;fontSize=10;strokeColor=#284b63;" edge="1" parent="1" source="enc" target="pads">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e8" value="state, start lane" style="edgeStyle=orthogonalEdgeStyle;html=1;fontSize=10;strokeColor=#284b63;dashed=1;" edge="1" parent="1" source="fsm" target="enc">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e9" value="next_ifg lookahead&#10;&#8594; sink.ready (registered)" style="edgeStyle=orthogonalEdgeStyle;html=1;fontSize=10;strokeColor=#284b63;dashed=1;" edge="1" parent="1" source="ifg" target="fsm">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="380" y="470" />
+              <mxPoint x="380" y="90" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e10" value="dic budget&#10;(branch A/B1/B2/C)" style="edgeStyle=orthogonalEdgeStyle;html=1;fontSize=10;strokeColor=#284b63;dashed=1;" edge="1" parent="1" source="dic" target="fsm">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="900" y="470" />
+              <mxPoint x="900" y="90" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e11" value="ifg_add_single (END lane &lt; 5)&#10;rem = END lane % 4" style="edgeStyle=orthogonalEdgeStyle;html=1;fontSize=10;strokeColor=#284b63;dashed=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;" edge="1" parent="1" source="enc" target="dic">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

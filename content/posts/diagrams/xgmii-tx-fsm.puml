@@ -1,0 +1,38 @@
+@startuml xgmii-tx-fsm
+hide empty description
+skinparam backgroundColor transparent
+skinparam state {
+  BackgroundColor #faf8f8
+  BorderColor #284b63
+  FontName "IBM Plex Mono"
+  ArrowColor #284b63
+}
+skinparam noteBackgroundColor #fff8e1
+skinparam noteBorderColor #84a59d
+
+title LiteEthPHYXGMIITX transmit FSM
+
+state IDLE
+state TRANSMIT
+
+[*] --> IDLE
+
+IDLE --> TRANSMIT : <b>A</b> valid & ifg==3\n--\nunshifted start (lane 0)\ndic = max(0, dic - rem)
+IDLE --> TRANSMIT : <b>B1</b> valid & ifg==2\n& rem!=0 & dic+rem<=3\n--\nunshifted start (lane 0)\ndic += rem (borrow)
+IDLE --> TRANSMIT : <b>B2</b> valid & ifg==2\n& !(B1 condition)\n--\nshifted start (lane 4)\ndic = max(0, dic - rem)
+IDLE --> TRANSMIT : <b>C</b> valid & ifg==1\n& rem!=0 & dic+rem<=3\n--\nshifted start (lane 4)\ndic += rem (borrow)
+
+IDLE --> IDLE : otherwise\n--\ntx = IDLE x8\nifg += 8 bytes\nready = lookahead(next_ifg, dic)
+
+TRANSMIT --> TRANSMIT : last_be == 0\n(more data)
+TRANSMIT --> TRANSMIT : last_be == 0x80\n--\nset end_transmission\n(END does not fit)
+TRANSMIT --> IDLE : last_be in word\n--\nEND + IDLEs emitted,\nrem = end_lane % 4\nifg += 4 if end_lane < 5
+TRANSMIT --> IDLE : end_transmission\n--\ntx = {END, IDLE x7}\nifg += 8 bytes
+
+note bottom of IDLE
+  ifg is a 2-bit **range** state:
+  0: <4B, 1: <8B, 2: <12B, 3: >=12B idle sent
+  rem = last packet length % 4
+  dic = deficit idle count, bounded 0..3
+end note
+@enduml

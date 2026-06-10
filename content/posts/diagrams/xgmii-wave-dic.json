@@ -1,0 +1,28 @@
+{
+  "signal": [
+    {"name": "eth_tx clk",      "wave": "p....."},
+    {"name": "fsm",             "wave": "=3....", "data": ["TRANSMIT", "TRANSMIT (shifted)"]},
+    {},
+    {"name": "sink.valid",      "wave": "1....."},
+    {"name": "sink.ready",      "wave": "1....."},
+    {"name": "sink.data",       "wave": "=4===x", "data": ["F (last)", "55..D5", "D0", "D1", "D2"]},
+    {"name": "sink.last",       "wave": "10...."},
+    {"name": "sink.last_be",    "wave": "==....", "data": ["01", "00"]},
+    {},
+    {"name": "last_packet_rem", "wave": "=.=...", "data": ["1", "1"]},
+    {"name": "current_ifg",     "wave": "==0...", "data": ["0", "1"]},
+    {"name": "current_dic",     "wave": "=.=...", "data": ["0", "1"]},
+    {},
+    {"name": "pads.tx_ctl",     "wave": "==0...", "data": ["FE", "1F"]},
+    {"name": "pads.tx_data",    "wave": "=4===x", "data": ["F[7:0] FD 07x6", "07x4 FB 55x3", "55x3 D5|D0[31:0]", "D0h|D1[31:0]", "D1h|D2[31:0]"]}
+  ],
+  "edge": [],
+  "head": {
+    "text": "Branch C - DIC borrow: back-to-back frames with only 11 bytes of IFG",
+    "tick": 0
+  },
+  "foot": {
+    "text": "Frame ends END@byte1 (rem=1, ifg_add_single -> ifg=1). dic+rem <= 3, so TX starts next cycle: 7+4 = 11 bytes IFG, deficit becomes 1."
+  },
+  "config": {"hscale": 2}
+}

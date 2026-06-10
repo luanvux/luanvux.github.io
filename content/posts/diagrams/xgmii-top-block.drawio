@@ -1,0 +1,68 @@
+<mxfile host="app.diagrams.net">
+  <diagram name="xgmii-top-block" id="xgmii-top-block">
+    <mxGraphModel dx="1000" dy="600" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="980" pageHeight="600" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <mxCell id="mac" value="LiteEth&#10;MAC core&#10;&#10;(preamble, CRC,&#10;padding)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="40" y="190" width="130" height="180" as="geometry" />
+        </mxCell>
+
+        <mxCell id="phy" value="LiteEthPHYXGMII" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#284b63;verticalAlign=top;fontSize=14;fontStyle=1;dashed=1;" vertex="1" parent="1">
+          <mxGeometry x="230" y="40" width="490" height="510" as="geometry" />
+        </mxCell>
+
+        <mxCell id="tx" value="LiteEthPHYXGMIITX&#10;&#10;TX FSM (IDLE / TRANSMIT)&#10;IFG range state (2b)&#10;Deficit idle count (2b)&#10;lane-0 / lane-4 start, half-word stitch" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#284b63;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="290" y="80" width="280" height="120" as="geometry" />
+        </mxCell>
+
+        <mxCell id="rx" value="LiteEthPHYXGMIIRX&#10;&#10;RX FSM (IDLE / RECEIVE)&#10;1-word lookahead&#10;END scan &#8594; last_be&#10;preamble regeneration" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#284b63;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="290" y="260" width="200" height="120" as="geometry" />
+        </mxCell>
+
+        <mxCell id="aligner" value="RXAligner&#10;&#10;NOSHIFT /&#10;SHIFT&#10;(lane-4 &#8594; lane-0)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#284b63;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="540" y="260" width="130" height="120" as="geometry" />
+        </mxCell>
+
+        <mxCell id="crg" value="LiteEthPHYXGMIICRG&#10;&#10;clock_pads.tx &#8594; cd_eth_tx&#10;clock_pads.rx &#8594; cd_eth_rx" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#284b63;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="350" y="430" width="240" height="90" as="geometry" />
+        </mxCell>
+
+        <mxCell id="pcs" value="PCS / PMA&#10;(e.g. Xilinx PG068)&#10;&#10;64b/66b coding,&#10;scrambling, GTX&#10;SERDES&#10;&#10;provides 156.25 MHz&#10;coreclk" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="780" y="80" width="160" height="300" as="geometry" />
+        </mxCell>
+
+        <mxCell id="e_sink" value="sink&#10;eth_phy_description(64)&#10;data, last, last_be" style="edgeStyle=orthogonalEdgeStyle;html=1;fontSize=11;strokeColor=#284b63;" edge="1" parent="1" source="mac" target="tx">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="170" y="140" as="sourcePoint" />
+          </mxGeometry>
+        </mxCell>
+
+        <mxCell id="e_txout" value="pads.tx_data[63:0]&#10;pads.tx_ctl[7:0]" style="edgeStyle=orthogonalEdgeStyle;html=1;fontSize=11;strokeColor=#284b63;" edge="1" parent="1" source="tx" target="pcs">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="e_rxin" value="pads.rx_data[63:0]&#10;pads.rx_ctl[7:0]" style="edgeStyle=orthogonalEdgeStyle;html=1;fontSize=11;strokeColor=#284b63;" edge="1" parent="1" source="pcs" target="aligner">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="e_aligned" value="aligned_ctl&#10;aligned_data" style="edgeStyle=orthogonalEdgeStyle;html=1;fontSize=11;strokeColor=#284b63;" edge="1" parent="1" source="aligner" target="rx">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="e_source" value="source&#10;eth_phy_description(64)&#10;(no backpressure)" style="edgeStyle=orthogonalEdgeStyle;html=1;fontSize=11;strokeColor=#284b63;" edge="1" parent="1" source="rx" target="mac">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="e_clk" value="clock_pads.tx / clock_pads.rx (156.25 MHz)" style="edgeStyle=orthogonalEdgeStyle;html=1;fontSize=11;strokeColor=#b85450;dashed=1;exitX=0;exitY=0.9;exitDx=0;exitDy=0;" edge="1" parent="1" source="pcs" target="crg">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="lbl_note" value="One 64-bit word per cycle @ 156.25 MHz = 10 Gb/s exactly: no spare cycles anywhere" style="text;html=1;align=center;fontSize=11;fontStyle=2;" vertex="1" parent="1">
+          <mxGeometry x="230" y="560" width="490" height="20" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

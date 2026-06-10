@@ -1,0 +1,25 @@
+{
+  "signal": [
+    {"name": "eth_tx clk",   "wave": "p......"},
+    {"name": "fsm",          "wave": "=3...==", "data": ["IDLE", "TRANSMIT", "IDLE", "IDLE"]},
+    {},
+    {"name": "sink.valid",   "wave": "01...0."},
+    {"name": "sink.ready",   "wave": "1....0."},
+    {"name": "sink.data",    "wave": "x4===x.", "data": ["55..D5", "D0", "D1", "D2"]},
+    {"name": "sink.last",    "wave": "0...10."},
+    {"name": "sink.last_be", "wave": "=...=.=", "data": ["00", "08", "00"]},
+    {},
+    {"name": "current_ifg",  "wave": "==..==.", "data": ["3", "0", "1", "3"]},
+    {"name": "pads.tx_ctl",  "wave": "==.==.=", "data": ["FF", "01", "00", "F0", "FF"]},
+    {"name": "pads.tx_data", "wave": "=4===.=", "data": ["IDLE x8", "FB 55x6 D5", "D0", "D1", "D2[31:0] FD 07x3", "IDLE x8"]}
+  ],
+  "edge": [],
+  "head": {
+    "text": "Branch A - unshifted start after full IFG (current_ifg == 3)",
+    "tick": 0
+  },
+  "foot": {
+    "text": "START replaces preamble byte 0 on lane 0; END lands mid-word (last_be=0x08), ifg_add_single fires"
+  },
+  "config": {"hscale": 2}
+}

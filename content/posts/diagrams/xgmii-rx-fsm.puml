@@ -1,0 +1,45 @@
+@startuml xgmii-rx-fsm
+hide empty description
+skinparam backgroundColor transparent
+skinparam state {
+  BackgroundColor #faf8f8
+  BorderColor #284b63
+  FontName "IBM Plex Mono"
+  ArrowColor #284b63
+}
+skinparam noteBackgroundColor #fff8e1
+skinparam noteBorderColor #84a59d
+
+title LiteEthPHYXGMIIRX - aligner FSM and receive FSM
+
+state "LiteEthPHYXGMIIRXAligner" as ALIGNER {
+  state NOSHIFT
+  state SHIFT
+
+  [*] --> NOSHIFT
+  NOSHIFT --> NOSHIFT : no lane-4 START\n--\npass word through
+  NOSHIFT --> SHIFT : START on lane 4\n--\nemit all-IDLE word,\nlatch upper half
+  SHIFT --> SHIFT : no lane-0 START\n--\nemit {latched half,\ncurrent lower half},\nlatch upper half
+  SHIFT --> NOSHIFT : START on lane 0\n--\ndrop latched half,\npass word through
+}
+
+state "LiteEthPHYXGMIIRX FSM" as RXFSM {
+  state IDLE
+  state RECEIVE
+
+  [*] --> IDLE
+  IDLE --> IDLE : no {START, preamble}\nmatch
+  IDLE --> RECEIVE : ctl==0x01 &\ndata=={START, preamble[63:8]}\n--\nemit regenerated preamble,\nvalid=1, first=1
+  IDLE --> IDLE : matched but lookahead\nsees immediate END\n--\nsingle-word frame
+  RECEIVE --> RECEIVE : no END found\n--\nvalid=1, data=word
+  RECEIVE --> IDLE : END in this word or\nstart of next word\n--\nlast=1, last_be from\npriority END scan
+}
+
+ALIGNER -[hidden]right-> RXFSM
+
+note bottom of ALIGNER
+  Re-aligns lane-4 starts to lane 0 so the
+  receive FSM only ever sees aligned frames.
+  Safe: receiver minimum IPG is 5 bytes.
+end note
+@enduml

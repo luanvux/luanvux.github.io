@@ -1,0 +1,27 @@
+{
+  "signal": [
+    {"name": "eth_tx clk",      "wave": "p....."},
+    {"name": "fsm",             "wave": "==3...", "data": ["TRANSMIT", "IDLE", "TRANSMIT (shifted)"]},
+    {},
+    {"name": "sink.valid",      "wave": "0.1..."},
+    {"name": "sink.ready",      "wave": "0.1..."},
+    {"name": "sink.data",       "wave": "x.4==x", "data": ["55..D5", "D0", "D1"]},
+    {},
+    {"name": "transmit_shifted","wave": "0..1.."},
+    {"name": "prev_valid_data", "wave": "x..4==", "data": ["55..D5", "D0", "D1"]},
+    {"name": "current_ifg",     "wave": "===0..", "data": ["0", "0", "2"]},
+    {"name": "current_dic",     "wave": "=..=..", "data": ["3", "1"]},
+    {},
+    {"name": "pads.tx_ctl",     "wave": "===0..", "data": ["C0", "FF", "1F"]},
+    {"name": "pads.tx_data",    "wave": "==4==x", "data": ["F[47:0] FD 07", "IDLE x8", "07x4 FB 55x3", "55x3 D5 | D0[31:0]", "D0[63:32] | D1[31:0]"]}
+  ],
+  "edge": [],
+  "head": {
+    "text": "Branch B2 - shifted start on lane 4 (current_ifg == 2, DIC budget exhausted)",
+    "tick": 0
+  },
+  "foot": {
+    "text": "Prev frame ended END@byte6 (rem=2, dic=3): 2+8+4 = 14 bytes IFG. Each TX word stitches prev upper half + current lower half."
+  },
+  "config": {"hscale": 2}
+}
