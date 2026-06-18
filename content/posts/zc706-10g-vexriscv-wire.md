@@ -12,9 +12,11 @@ description: "Making the ZC706's 10G LiteEth MAC reachable from VexRiscv, why th
 
 ## Why the CPU needs the wire
 
-The hardware UDP generator from the previous build bypasses the CPU entirely: pure datapath, no protocol awareness. That is fine for bulk throughput, but it leaves no one to answer ARP requests, respond to ICMP ping, or later negotiate RoCEv2 queue pairs through MAD CM messages.
+The hardware UDP generator from the previous build bypasses the CPU entirely: pure datapath, no protocol awareness. That is fine for bulk throughput, but it leaves no one to answer ARP requests or respond to ICMP ping.
 
 `add_ethernet()` wires a wishbone MAC into the SoC so LiteX BIOS gets an `ethernet>` prompt with `ping`, `arp`, and `netboot`. Same API call used for 1G demos. Add `data_width=64` and the MAC runs at 10G width. Except it does not close timing. Two bugs.
+
+> **Source:** [`xilinx_zc706.py`](https://github.com/tieovi/10gbe_zc706/blob/main/xilinx_zc706.py) — the LiteX SoC target with the `--with-10g` flag.
 
 ---
 
@@ -144,10 +146,10 @@ From the traffic station, ping the FPGA directly:
 
 ![Traffic station: `sudo ifconfig ens1f1 10.1.0.4` + `ping 10.1.0.3` -- replies 0.06 to 0.14 ms](images/4_server_icmp_ping.png)
 
-VexRiscv is on the wire. The same wishbone MAC that handles ARP and ICMP will later process RoCEv2 QP negotiation, without touching the 1.25 GB/s datapath.
+VexRiscv is on the wire. The wishbone MAC handles ARP and ICMP while the Ethernet datapath runs independently in the `clkmgt` domain.
 
 ---
 
 ## What's next
 
-The control plane is up. Next is `LiteEthDMA`: a `LiteDRAMDMAWriter/Reader` bridge that moves payload data directly to DDR3 without the CPU touching it. Without that, `iperf3` hits around 150 Mbps because VexRiscv is copying every byte. With DMA, it becomes a meaningful 10G benchmark.
+The control plane is up. Next is adding DMA capacity so the MAC can move payload directly to DDR3 without the CPU touching it. Performance will be measured with `iperf3` on Linux. Without DMA, VexRiscv copies every byte and the result is CPU-bound, not link-bound. With DMA, `iperf3` becomes a real measure of what the 10G path can sustain.
