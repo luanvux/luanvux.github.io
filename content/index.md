@@ -17,4 +17,7 @@ The goal is to turn lessons learned from study and hands-on work into clear, reu
 
 ## Posts
 
+- [[posts/zc706-10g-vexriscv-wire|Giving the CPU the Wire: VexRiscv-Accessible 10G Ethernet on the ZC706]]
+- [[posts/liteeth-xgmii-deep-dive|No Spare Cycles: Inside LiteEth's XGMII Reconciliation Sublayer]]
+- [[posts/zc706-10g-liteeth|Open MAC, Xilinx PHY: 10G Ethernet on ZC706 with LiteEth]]
 - [[posts/zc706-10g-one-board|10G Ethernet on ZC706: One Board, One PC, Zero Second Board]]
