@@ -1,13 +1,13 @@
 # yaml-language-server: $schema=./quartz/plugins/quartz-plugins.schema.json
 configuration:
-  pageTitle: tieovi
+  pageTitle: luanvux
   pageTitleSuffix: ""
   enableSPA: true
   enablePopovers: true
   analytics:
     provider: plausible
   locale: en-US
-  baseUrl: tieovi.github.io
+  baseUrl: luanvux.github.io
   ignorePatterns:
     - private
     - templates
@@ -213,7 +213,7 @@ plugins:
     enabled: true
     options:
       links:
-        GitHub: https://github.com/tieovi/tieovi.github.io
+        GitHub: https://github.com/luanvux/luanvux.github.io
         Discord Community: https://discord.gg/cRFFHYye7t
   - source: github:quartz-community/recent-notes
     enabled: false

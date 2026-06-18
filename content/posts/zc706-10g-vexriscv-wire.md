@@ -16,7 +16,7 @@ The hardware UDP generator from the previous build bypasses the CPU entirely: pu
 
 `add_ethernet()` wires a wishbone MAC into the SoC so LiteX BIOS gets an `ethernet>` prompt with `ping`, `arp`, and `netboot`. Same API call used for 1G demos. Add `data_width=64` and the MAC runs at 10G width. Except it does not close timing. Two bugs.
 
-> **Source:** [`xilinx_zc706.py`](https://github.com/tieovi/10gbe_zc706/blob/main/xilinx_zc706.py) — the LiteX SoC target with the `--with-10g` flag.
+> **Source:** [`xilinx_zc706.py`](https://github.com/luanvux/10gbe_zc706/blob/main/xilinx_zc706.py) — the LiteX SoC target with the `--with-10g` flag.
 
 ---
 

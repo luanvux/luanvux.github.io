@@ -18,7 +18,7 @@ This article replaces that MAC with **LiteEth** — the BSD-licensed Ethernet st
 
 ![ZC706 board with SFP+ cage populated](images/zc706.jpg)
 
-> **Source:** [`10g_zc706.py`](https://github.com/tieovi/zc706_10g_example) and `clock_init.py` — a LiteX SoC target plus a host-side clock bring-up script.
+> **Source:** [`10g_zc706.py`](https://github.com/luanvux/zc706_10g_example) and `clock_init.py` — a LiteX SoC target plus a host-side clock bring-up script.
 
 ---
 

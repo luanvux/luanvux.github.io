@@ -15,7 +15,7 @@ description: "Running a Vivado 2024.1 port of the RTSYork ZC706 10G Ethernet rep
 
 This article uses the slave/reply design with **one ZC706 and one PC**: the PC replaces the original transmitter board and runs Scapy to generate and receive frames. The board returns each frame with source and destination MAC addresses swapped, adds `0xAA` to the first two payload bytes, and echoes the rest of the payload. The migrated build scripts target Vivado 2024.1 and Vitis HLS 2024.1.
 
-> **Source code:** [github.com/tieovi/zc706_10g_example](https://github.com/tieovi/zc706_10g_example)
+> **Source code:** [github.com/luanvux/zc706_10g_example](https://github.com/luanvux/zc706_10g_example)
 > This repository is based on RTSYork's original project, with the slave hardware build updated for Vivado 2024.1 and Vitis HLS.
 
 ---
@@ -74,7 +74,7 @@ This is the topology in the linked migrated repository. It does **not** split th
 Clone the repository, then run the build from the `slave_hw` directory:
 
 ```bash
-git clone https://github.com/tieovi/zc706_10g_example.git
+git clone https://github.com/luanvux/zc706_10g_example.git
 ```
 
 Everything is scripted. From the repository root:
@@ -116,7 +116,7 @@ In Vitis 2024.1 Unified:
 
 1. **Create platform** from the exported XSA — the Zynq PS BSP is generated automatically.
 2. **Create application** targeting the platform — use the bare-metal `Hello World` template as the starting point.
-3. Replace `helloworld.c` with [`slave_sw/clock_init.c`](https://github.com/tieovi/zc706_10g_example/blob/master/slave_sw/clock_init.c). This application programs the Si5324 reference clock; the packet reply datapath is implemented in PL hardware.
+3. Replace `helloworld.c` with [`slave_sw/clock_init.c`](https://github.com/luanvux/zc706_10g_example/blob/master/slave_sw/clock_init.c). This application programs the Si5324 reference clock; the packet reply datapath is implemented in PL hardware.
 4. Build and program: **Run → Run Configurations → Xilinx Application Debugger**.
 
 ---
@@ -141,7 +141,7 @@ i2c_write_single_reg(&i2c_dev, 0x68, 0x01, 0xE4); // CK_PRIOR2, CK_PRIOR1
 i2c_write_single_reg(&i2c_dev, 0x68, 0x88, 0x40); // RST_REG, ICAL
 ```
 
-The full tested sequence is in [`slave_sw/clock_init.c`](https://github.com/tieovi/zc706_10g_example/blob/master/slave_sw/clock_init.c); it performs 21 Si5324 register writes after selecting the bus-switch route.
+The full tested sequence is in [`slave_sw/clock_init.c`](https://github.com/luanvux/zc706_10g_example/blob/master/slave_sw/clock_init.c); it performs 21 Si5324 register writes after selecting the bus-switch route.
 
 ---
 
