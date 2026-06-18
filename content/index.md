@@ -1,5 +1,5 @@
 ---
-title: luanvux
+title: Luan Vu
 ---
 
 # Welcome
