@@ -17,7 +17,7 @@ description: "Ping and ARP worked from the first article, but iperf3 returned ze
 
 `iperf3 -c 10.1.0.3 -R` asked. Nine seconds, 0.00 bits/sec, then the connection died mid-result-exchange.
 
-> **Source:** [`xilinx_zc706.py`](https://github.com/luanvux/10gbe_zc706/blob/main/xilinx_zc706.py) — the SoC target. [`liteeth/mac/core.py`](https://github.com/enjoy-digital/liteeth/blob/master/liteeth/mac/core.py) — the MAC's RX/TX clock-domain crossing. `boards.py` in `linux-on-litex-vexriscv` — the board's `sys_clk_freq`.
+> **Source:** [`xilinx_zc706.py`](https://github.com/luanvux/10gbe_zc706/blob/main/xilinx_zc706.py) — the SoC target. [`liteeth/mac/core.py`](https://github.com/enjoy-digital/liteeth/blob/master/liteeth/mac/core.py) — the MAC's RX/TX clock-domain crossing. [`boards.py`](https://github.com/luanvux/zc706-linux-on-litex-vexriscv/blob/master/boards.py) in [`zc706-linux-on-litex-vexriscv`](https://github.com/luanvux/zc706-linux-on-litex-vexriscv) — the board's `sys_clk_freq`.
 
 ---
 
@@ -104,7 +104,7 @@ Tried 200 MHz next. `8 × 200e6 = 1600 MT/s` — a real DDR3 bin, margin under t
 ```python
 class ZC706(Board):
     soc_kwargs = {"uart_name": "crossover", "with_jtagbone": True,
-                  "sys_clk_freq": int(200e6)}   # current state — DDR3 timing does not close at this value
+                  "sys_clk_freq": int(125e6)}   # reverted — 200e6 doesn't close DDR3 timing on this board
 ```
 
 ---
@@ -134,7 +134,7 @@ That number scales with `sys_clk_freq`, but the mechanism doesn't change — a f
 
 ## Result
 
-Neither candidate frequency survived the build. 250 MHz never reaches synthesis — it fails at elaboration, in `litedram`, before timing is even a question. 200 MHz reaches implementation and fails there: DDR3 timing does not close on this board at that rate. The CDC theory above is still believed correct — the ping-loss curve and the zero `-R` result line up with it exactly — but it remains unconfirmed on hardware, because the obvious fix for it doesn't build. `boards.py` is currently sitting at `sys_clk_freq = 200e6` mid-attempt, not yet reverted to the working 125 MHz baseline — that revert, or another way to close DDR3 timing at a higher rate, is still open.
+Neither candidate frequency survived the build. 250 MHz never reaches synthesis — it fails at elaboration, in `litedram`, before timing is even a question. 200 MHz reaches implementation and fails there: DDR3 timing does not close on this board at that rate. The CDC theory above is still believed correct — the ping-loss curve and the zero `-R` result line up with it exactly — but it remains unconfirmed on hardware, because the obvious fix for it doesn't build. `boards.py` is back at the working `sys_clk_freq = 125e6`; closing DDR3 timing at a higher rate on this board is still open.
 
 ---
 
