@@ -104,7 +104,7 @@ Tried 200 MHz next. `8 × 200e6 = 1600 MT/s` — a real DDR3 bin, margin under t
 ```python
 class ZC706(Board):
     soc_kwargs = {"uart_name": "crossover", "with_jtagbone": True,
-                  "sys_clk_freq": int(125e6)}   # unchanged — 200e6 broke DDR3 timing closure
+                  "sys_clk_freq": int(200e6)}   # current state — DDR3 timing does not close at this value
 ```
 
 ---
@@ -122,7 +122,7 @@ memory_region,ethmac,0x80000000,8192,io+linker
 
 `8192 = 2×2048 (RX) + 2×2048 (TX)`. There is no DMA engine here — every byte of every frame that clears the CDC FIFO still has to leave through VexRiscv issuing Wishbone loads and stores, word by word, against those four slots.
 
-A classic 32-bit Wishbone bus needs roughly 2 cycles per word transfer. Back of the envelope, at the current 125 MHz:
+A classic 32-bit Wishbone bus needs roughly 2 cycles per word transfer. Back of the envelope, at the 125 MHz the link was actually tested at:
 
 ```
 125 MHz / 2 cycles × 4 bytes ≈ 250 MB/s ≈ 2 Gbps   (raw bus, before driver/IRQ/protocol overhead)
@@ -134,7 +134,7 @@ That number scales with `sys_clk_freq`, but the mechanism doesn't change — a f
 
 ## Result
 
-Neither candidate frequency survived the build. 250 MHz never reaches synthesis — it fails at elaboration, in `litedram`, before timing is even a question. 200 MHz reaches implementation and fails there: DDR3 timing does not close on this board at that rate. The CDC theory above is still believed correct — the ping-loss curve and the zero `-R` result line up with it exactly — but it remains unconfirmed on hardware, because the obvious fix for it doesn't build. `sys_clk_freq` stays at 125 MHz for now.
+Neither candidate frequency survived the build. 250 MHz never reaches synthesis — it fails at elaboration, in `litedram`, before timing is even a question. 200 MHz reaches implementation and fails there: DDR3 timing does not close on this board at that rate. The CDC theory above is still believed correct — the ping-loss curve and the zero `-R` result line up with it exactly — but it remains unconfirmed on hardware, because the obvious fix for it doesn't build. `boards.py` is currently sitting at `sys_clk_freq = 200e6` mid-attempt, not yet reverted to the working 125 MHz baseline — that revert, or another way to close DDR3 timing at a higher rate, is still open.
 
 ---
 
